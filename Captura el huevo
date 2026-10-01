@@ -1,0 +1,147 @@
+--[[
+    🔥 XAVI HUB | MÁS VELOCIDAD 🔥
+    ✅ Menú CUADRADO limpio
+    ✅ CAPTURAR EL HUEVO → MÁS RÁPIDO
+    ✅ Sin Plataforma Fija
+    ✅ Altura: 105
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local Player = Players.LocalPlayer
+local activarSubir = false
+local plataforma = nil
+local posicionFija = nil
+local subiendo = false
+local menuAbierto = true
+
+-- ⚙️ Más rápido = número MENOR
+local ALTURA_TECHO = 105
+local TIEMPO_SUBIDA = 0.8 -- ⚡ Subió de 1.5 a 0.8
+
+local Gui = Player:WaitForChild("PlayerGui")
+
+local function borrarPlataforma()
+    if plataforma then plataforma:Destroy() end
+    plataforma = nil
+    posicionFija = nil
+    subiendo = false
+end
+
+local function crearPlataforma(pos)
+    borrarPlataforma()
+    posicionFija = pos
+    
+    plataforma = Instance.new("Part")
+    plataforma.Size = Vector3.new(25, 1, 25)
+    plataforma.Position = posicionFija
+    plataforma.Material = Enum.Material.Neon
+    plataforma.BrickColor = BrickColor.new("Really red")
+    plataforma.Anchored = true
+    plataforma.CanCollide = true
+    plataforma.Parent = workspace
+end
+
+RunService.Heartbeat:Connect(function()
+    if not activarSubir then
+        if plataforma then borrarPlataforma() end
+        return
+    end
+    if plataforma and posicionFija then
+        plataforma.Position = posicionFija
+    end
+end)
+
+-- === INTERFAZ CUADRADA ===
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "XaviHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = Gui
+
+-- Botón principal cuadrado
+local BtnMenu = Instance.new("TextButton")
+BtnMenu.Size = UDim2.new(0, 180, 0, 50)
+BtnMenu.Position = UDim2.new(0.02, 0, 0.08, 0)
+BtnMenu.BackgroundColor3 = Color3.fromRGB(28, 28, 28)
+BtnMenu.BorderSizePixel = 3
+BtnMenu.BorderColor3 = Color3.fromRGB(80, 80, 80)
+BtnMenu.Text = "XAVI HUB"
+BtnMenu.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnMenu.Font = Enum.Font.GothamBold
+BtnMenu.TextSize = 20
+BtnMenu.Parent = ScreenGui
+
+-- Panel CUADRADO
+local Marco = Instance.new("Frame")
+Marco.Size = UDim2.new(0, 280, 0, 160)
+Marco.Position = UDim2.new(0.02, 0, 0.18, 0)
+Marco.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+Marco.BorderSizePixel = 3
+Marco.BorderColor3 = Color3.fromRGB(60, 60, 60)
+Marco.Active = true
+Marco.Draggable = true
+Marco.Visible = true
+Marco.Parent = ScreenGui
+
+-- Título
+local Titulo = Instance.new("TextLabel")
+Titulo.Size = UDim2.new(1, 0, 0, 50)
+Titulo.Position = UDim2.new(0, 0, 0, 0)
+Titulo.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+Titulo.Text = "XAVI HUB"
+Titulo.TextColor3 = Color3.fromRGB(255, 255, 255)
+Titulo.Font = Enum.Font.GothamBold
+Titulo.TextSize = 22
+Titulo.Parent = Marco
+
+-- Botón CAPTURAR EL HUEVO
+local BtnHuevo = Instance.new("TextButton")
+BtnHuevo.Size = UDim2.new(1, -20, 0, 55)
+BtnHuevo.Position = UDim2.new(0, 10, 0, 75)
+BtnHuevo.BackgroundColor3 = Color3.fromRGB(140, 20, 20)
+BtnHuevo.Text = "CAPTURAR EL HUEVO"
+BtnHuevo.TextColor3 = Color3.fromRGB(255, 255, 255)
+BtnHuevo.Font = Enum.Font.GothamBold
+BtnHuevo.TextSize = 16
+BtnHuevo.Parent = Marco
+
+-- === ABRIR Y CERRAR MENÚ ===
+BtnMenu.MouseButton1Click:Connect(function()
+    menuAbierto = not menuAbierto
+    Marco.Visible = menuAbierto
+    BtnMenu.Text = menuAbierto and "XAVI HUB ▲" or "XAVI HUB ▼"
+end)
+
+-- === CAPTURAR EL HUEVO - MÁS RÁPIDO ===
+BtnHuevo.MouseButton1Click:Connect(function()
+    if subiendo then return end
+    activarSubir = not activarSubir
+    
+    if not Player.Character then Player.CharacterAdded:Wait() end
+    local Personaje = Player.Character
+    local Root = Personaje:FindFirstChild("HumanoidRootPart")
+    if not Root then return end
+
+    if activarSubir then
+        subiendo = true
+        local posArriba = Vector3.new(Root.Position.X, ALTURA_TECHO, Root.Position.Z)
+        crearPlataforma(posArriba)
+        task.wait(0.05)
+        
+        local meta = CFrame.new(posArriba + Vector3.new(0, 2.5, 0))
+        TweenService:Create(Root, TweenInfo.new(TIEMPO_SUBIDA, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {CFrame = meta}):Play()
+        
+        BtnHuevo.Text = "CAPTURAR EL HUEVO [ON]"
+        BtnHuevo.BackgroundColor3 = Color3.fromRGB(15, 130, 30)
+        task.wait(TIEMPO_SUBIDA)
+        subiendo = false
+    else
+        borrarPlataforma()
+        BtnHuevo.Text = "CAPTURAR EL HUEVO"
+        BtnHuevo.BackgroundColor3 = Color3.fromRGB(140, 20, 20)
+    end
+end)
+
+print("✅ XAVI HUB | MÁS RÁPIDO LISTO")
